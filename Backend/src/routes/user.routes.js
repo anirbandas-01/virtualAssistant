@@ -6,7 +6,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const userRouter = express.Router()
  
-userRouter.route("/signup", signUp)
+userRouter.route("/signup").post(signUp)
 
 userRouter.route("/signin").post(loginUser)
 
