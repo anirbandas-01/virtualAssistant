@@ -5,6 +5,7 @@ import { FaEye } from "react-icons/fa";
 import { LuEyeClosed } from "react-icons/lu";
 import { UserDataContext } from '../context/userContext';
 import axios from 'axios'
+import SignIn from './SignIn';
 
 function SignUp() {
  
@@ -17,18 +18,35 @@ function SignUp() {
   const [name, setName]= useState("")
   const [email, setEmail]= useState("")
   const [password, setPassword]= useState("")
+  const [loading, setLoading]= useState(false)
+  const [err, setErr] = useState("")
 
   const handleSignUp = async (e) => {
     e.preventDefault()
-    try {
-       let result = await axios.post(`${serverUrl}/api/v1/users/signup`,
-        {name, email, password},
-        {withCredentials: true})
-    } catch (error) {
-      console.log(error);
-      
+    setErr("")
+    setLoading(true)
+    
+    if( password.length < 6 ){
+      setErr("password must be at-least 6 characters");
+      return;
     }
-  }
+    
+    try {
+
+       const result = await axios.post(
+        `${serverUrl}/api/v1/users/signup`,
+        {fullName:name, email, password},
+        {withCredentials: true});
+
+         console.log("✅ Response:", result.data);
+         setLoading(false)
+      } catch (error) {
+      
+          console.log("❌ Axios error:",error);
+          setLoading(false)
+          setErr(error?.response?.data?.message || "Something went wrong. Try again.")
+    }
+  };
 
   return (
     <div className='w-full h-[100vh] bg-cover flex justify-center items-center' 
@@ -39,7 +57,7 @@ function SignUp() {
 
       <h1 className='text-white text-[30px] font-semibold mb-[30px]'> 
         Register to
-        <span className='text-blue-400'>Virtual Assistant</span>  
+        <span className='text-blue-400'> Virtual Assistant</span>  
         </h1>
          
         <input type='text' placeholder='Enter Your Name' className='w-full h-[60px] outline-none border-2 border-white bg-transparent text-white placeholder-gray-300 px-[20px] py-[20px] rounded-2xl text-[18px]' required onChange={(e)=> setName(e.target.value)} value={name}/>
@@ -60,13 +78,16 @@ function SignUp() {
                }
                
         </div>
+        
+         {err.length > 0 && <p className='text-red-500'>*{err}</p>}
+
         <button className='min-w-[150px] h-[60px] mt-[13px] text-black font-semibold
-         bg-white rounded-full text-[19px]'>SignUp</button>
+         bg-white rounded-full text-[19px]' disabled={loading}>{loading?"Loading...":"Sign Up"}</button>
 
 
         <p className='text-[white] text-[18px] cursor-pointer' 
               onClick={()=>navigate("/signin")}>Already have an account ?
-           <span className='text-blue-400'>  Sign In</span>
+           <span className='text-blue-600'>  Sign In</span>
         </p>
      </form>
     </div>

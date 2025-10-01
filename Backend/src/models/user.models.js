@@ -3,9 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
-dotenv.config({
-    port:"./.env"
-});
+dotenv.config();
 
 
 const userSchema = new mongoose.Schema(
@@ -16,13 +14,13 @@ const userSchema = new mongoose.Schema(
             trim: true,
             index: true
         },
-        userName:{
+       /*  userName:{
             type: String,
             required: true,
             unique: true,
             trim: true,
             index: true
-        },
+        }, */
         email:{
             type: String,
             required: true,
@@ -36,7 +34,7 @@ const userSchema = new mongoose.Schema(
         },
         assistantName: {
              type: String,
-             required: true        
+             required: false        
         },
         assistantImage: {
             type: String
@@ -70,7 +68,7 @@ userSchema.methods.generateAccessToken = function(){
         {
             _id: this._id,
             email: this.email,
-            userName: this.userName
+            //userName: this.userName
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
