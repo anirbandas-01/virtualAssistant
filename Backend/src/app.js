@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import cookieParser  from "cookie-parser";
 
+//routes import
+import authRouter from "./routes/auth.routes.js";
+import userRouter from "./routes/user.routes.js";
 
 const app = express()
 
@@ -17,11 +20,12 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
-//routes import
-import userRouter from "./routes/user.routes.js";
+
 
 //router declaration
+app.use("/api/v1/users", authRouter)
 app.use("/api/v1/users", userRouter)
+
 
 // ✅ Global error handler (must be after routes)
 app.use((err, req, res, next) => {

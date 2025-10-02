@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -48,18 +48,22 @@ const userSchema = new mongoose.Schema(
     },{timestamps: true}
 )
 
+// 🔐 Password hashing before save
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
     
-    this.password = await bcrypt.hash(this.password, 10)
+    const SALT_ROUNDS = 12;
+    this.password = await bcrypt.hash(this.password, SALT_ROUNDS)
     next()
-})
+});
 
-userSchema.methods.isPasswordCorrect = async function (password) {
-    return await bcrypt.compare(password, this.password)
+// 🔑 Compare passwords
+userSchema.methods.isPasswordCorrect =  function (password) {
+    return  bcrypt.compare(password, this.password)
 
-}
+};
 
+// 🎟️ Generate Access Token
 userSchema.methods.generateAccessToken = function(){
     if(!process.env.ACCESS_TOKEN_SECRET){
         throw new Error("Access token secret is missing in .env");
@@ -74,11 +78,11 @@ userSchema.methods.generateAccessToken = function(){
         {
             expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
-     )
-}
+     );
+};
 
-
-userSchema.methods.generateRefreshToken = async function () {
+// 🔄 Generate Refresh Token
+userSchema.methods.generateRefreshToken =  function () {
     if(!process.env.REFRESH_TOKEN_SECRET){
         throw new Error("Refresh token secret is missing in .env");
     }
@@ -90,8 +94,8 @@ userSchema.methods.generateRefreshToken = async function () {
         {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
-     )
-}
+     );
+};
 const User = mongoose.model("User", userSchema)
 
 export default User
