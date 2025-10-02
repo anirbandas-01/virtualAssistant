@@ -1,5 +1,6 @@
 import express from "express";
 import { getCurrentUser } from "../controllers/auth.controllers.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 
 
