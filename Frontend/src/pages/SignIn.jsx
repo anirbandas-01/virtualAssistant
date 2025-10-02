@@ -3,14 +3,14 @@ import { useNavigate  } from 'react-router-dom';
 import bg from "../assets/authBg.png"
 import { FaEye } from "react-icons/fa";
 import { LuEyeClosed } from "react-icons/lu";
-import { UserDataContext } from '../context/userContext';
+import { UserDataContext } from '../context/UserContext.jsx';
 import axios from 'axios'
 
 function SignIn() {
  
   const [showPassword, setShowPassword ] =  useState(false);
   
-  const {serverUrl} = useContext(UserDataContext)
+  const {serverUrl,userData, setUserData} = useContext(UserDataContext)
 
   const navigate = useNavigate()
   
@@ -36,13 +36,15 @@ function SignIn() {
        const result = await axios.post(
         `${serverUrl}/api/v1/users/signin`,
         {email, password},
-        {withCredentials: true});
-
-         console.log("✅ Response:", result);
+        {withCredentials: true})
+         setUserData(result.data)
          setLoading(false)
+        navigate("/")
       } catch (error) {
-          setLoading(false)
+          
           console.log("❌ Axios error:",error);
+          setUserData(null)
+          setLoading(false)
           setErr(error?.response?.data?.message || "Something went wrong. Try again.")
     }
   };

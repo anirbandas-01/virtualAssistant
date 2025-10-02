@@ -3,7 +3,7 @@ import { useNavigate  } from 'react-router-dom';
 import bg from "../assets/authBg.png"
 import { FaEye } from "react-icons/fa";
 import { LuEyeClosed } from "react-icons/lu";
-import { UserDataContext } from '../context/userContext';
+import { UserDataContext } from '../context/UserContext.jsx';
 import axios from 'axios'
 import SignIn from './SignIn';
 
@@ -11,7 +11,7 @@ function SignUp() {
  
   const [showPassword, setShowPassword ] =  useState(false);
   
-  const {serverUrl} = useContext(UserDataContext)
+  const {serverUrl,userData, setUserData} = useContext(UserDataContext)
 
   const navigate = useNavigate()
   
@@ -38,11 +38,13 @@ function SignUp() {
         {fullName:name, email, password},
         {withCredentials: true});
 
-         console.log("✅ Response:", result.data);
-         setLoading(false)
+         setUserData(result.data);
+         setLoading(false);
+         navigate("/customize")
       } catch (error) {
-      
-          console.log("❌ Axios error:",error);
+          
+          console.log(error);
+          setUserData(null)
           setLoading(false)
           setErr(error?.response?.data?.message || "Something went wrong. Try again.")
     }
