@@ -1,37 +1,45 @@
-import React, { createContext, useEffect } from 'react'
+import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
-export const UserDataContext = createContext()
+export const UserDataContext = createContext();
 
 function UserContext({ children }) {
+  const serverUrl = "http://localhost:9090";
+  const [userData, setUserData] = useState(null);
 
-    const serverUrl = "http://localhost:9090"
-    const [userData, setUserData] = useState(null)
+  // ✅ Fetch current user only if accessToken exists in cookies
+  const handelCurrentUser = async () => {
+    try {
+      const tokenExists = document.cookie.split("; ").find(row => row.startsWith("accessToken="));
+      if (!tokenExists) return;
 
-    const handelCurrentUser = async () => {
-      try {
-        const result = await axios.get(`${serverUrl}/api/user/current`, {withCredentials:true})
-        setUserData(result.data)
-        console.log(result.data);
-        
-      } catch (error) {
-         console.log(error); 
-      }
-    } 
-
-     useEffect(() => {
-      handelCurrentUser()
-     },[])
-
-    const value= {
-        serverUrl,userData, setUserData
+      const result = await axios.get(`${serverUrl}/api/v1/users/current`, {
+        withCredentials: true
+      });
+      setUserData(result.data);
+      console.log("Current User:", result.data);
+    } catch (error) {
+      console.log("User fetch error:", error);
+      setUserData(null);
     }
+  };
+
+  useEffect(() => {
+    handelCurrentUser();
+  }, []);
+
+  const value = {
+    serverUrl,
+    userData,
+    setUserData,
+    handelCurrentUser
+  };
+
   return (
-    <div>
-        <UserDataContext.Provider value={value}>
-           {children}
-        </UserDataContext.Provider>
-    </div>
-  )
+    <UserDataContext.Provider value={value}>
+      {children}
+    </UserDataContext.Provider>
+  );
 }
 
-export default UserContext
+export default UserContext;
