@@ -92,6 +92,10 @@ const loginUser = asyncHandler(async (req, res)=> {
      if(! email ){
          throw new ApiError(400, " Enter Correct  email to login")
      }
+
+     if(!password){
+      throw new ApiError(400, "Password is required ");
+     }
  
      const user = await User.findOne({email})
  
@@ -106,7 +110,8 @@ const loginUser = asyncHandler(async (req, res)=> {
      }
  
      const { accessToken, refreshToken } = await generateAccessTokenAndRefreshTokens(user._id)
- 
+     
+     
      const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
  
      const isProduction = process.env.NODE_ENV === "production";
@@ -222,18 +227,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-
-
-const getCurrentUser = asyncHandler(async (req, res)=> {
-    return res
-    .status(200)
-    .json(new ApiResponse(200, req.user, "current user fetch successfully"))
-})
-
 export{
     signUp,
     loginUser,
     logOutUser,
-    refreshAccessToken,
-    getCurrentUser
+    refreshAccessToken
 }
