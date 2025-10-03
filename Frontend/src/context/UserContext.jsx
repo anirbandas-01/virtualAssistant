@@ -4,9 +4,13 @@ import axios from 'axios';
 export const UserDataContext = createContext();
 
 function UserContext({ children }) {
+
   const serverUrl = "http://localhost:9090";
   const [userData, setUserData] = useState(null);
-
+  const [frontendImage, setFrontendImage] = useState(null)
+  const [backendImage, setBackendImage] = useState(null)
+  const [selectedImage, setSelectedImage] = useState(null)
+  
   // ✅ Fetch current user only if accessToken exists in cookies
   const handelCurrentUser = async () => {
     try {
@@ -32,7 +36,13 @@ function UserContext({ children }) {
     serverUrl,
     userData,
     setUserData,
-    handelCurrentUser
+    handelCurrentUser,
+    backendImage,
+    setBackendImage,
+    frontendImage,
+    setFrontendImage,
+    selectedImage, 
+    setSelectedImage
   };
 
   return (
