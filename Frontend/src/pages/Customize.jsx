@@ -38,10 +38,10 @@ function Customize() {
   }
   
   return (
-    <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#04044b] flex justify-center items-center flex-col p=[20px] relative'>
+    <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#04044b] flex justify-center items-center flex-col p=[20px]'>
       
-       <FaBackward className='absolute top-[30px] left-[30px] text-white w-[25px] h-[25px]    z-50 cursor-pointer'
-       onClick={()=> navigate("/signin")}/>
+       <FaBackward className='absolute top-[30px] left-[30px] text-white w-[25px] h-[25px]    cursor-pointer'
+       onClick={()=> navigate("/")}/>
 
       <h1 className='text-white mb-[30px] text-[30px] text-center'>Select your <span className='text-green-500'>Assistant</span> image</h1>
 
