@@ -81,8 +81,23 @@ function SignUp() {
 
         {err && <p className='text-red-500'>*{err}</p>}
 
-        <button className='min-w-[150px] h-[60px] mt-[13px] text-black font-semibold bg-white rounded-full text-[19px]'
-                disabled={loading}>{loading ? "Loading..." : "Sign Up"}</button>
+      {/*   <button className='min-w-[150px] h-[60px] mt-[13px] text-black font-semibold bg-white rounded-full text-[19px]'
+                disabled={loading}>{loading ? "Loading..." : "Sign Up"}</button> */}
+
+        <button
+         className={`relative min-w-[200px] h-[60px] mt-[13px] font-semibold rounded-full text-[19px] overflow-hidden transition-all duration-300
+         bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg
+         hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed`}
+         disabled={loading}
+         >
+        <span className="relative z-10">
+        {loading ? "⚡ Creating..." : "📝 Sign Up"}
+        </span>
+
+        {/* Glow effect */}
+        <span className="absolute inset-0 bg-gradient-to-r from-green-500 via-teal-400 to-blue-500 opacity-50 animate-pulse blur-lg"></span>
+        </button>
+
 
         <p className='text-[white] text-[18px] cursor-pointer'
            onClick={() => navigate("/signin")}>Already have an account?

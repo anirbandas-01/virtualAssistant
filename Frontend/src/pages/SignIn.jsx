@@ -80,8 +80,23 @@ function SignIn() {
         
          {err.length > 0 && <p className='text-red-500'>*{err}</p>}
 
-        <button className='min-w-[150px] h-[60px] mt-[13px] text-black font-semibold
+        {/* <button className='min-w-[150px] h-[60px] mt-[13px] text-black font-semibold
          bg-white rounded-full text-[19px]' disabled={loading}>{loading?"Loading...":"Sign In"}</button>
+ */}
+
+       <button
+         className={`relative min-w-[200px] h-[60px] mt-[13px] font-semibold rounded-full text-[19px] overflow-hidden transition-all duration-300
+          bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-700 text-white shadow-lg
+          hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed`}
+          disabled={loading}
+        >
+        <span className="relative z-10">
+        {loading ? "⏳ Loading..." : "🔐 Sign In"}
+        </span>
+
+       {/* Tech glow effect */}
+       <span className="absolute inset-0 bg-gradient-to-r from-blue-500 via-cyan-400 to-indigo-600 opacity-50 animate-pulse blur-lg"></span>
+       </button>
 
 
         <p className='text-[white] text-[18px] cursor-pointer' 
