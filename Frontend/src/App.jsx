@@ -9,10 +9,9 @@ import Customize2 from './pages/Customize2.jsx'
 
 
 function App() {
-  const [count, setCount] = useState(0)
   const {userData, setUserData}= useContext(UserDataContext)
   
-  const devMode = false
+ /*  const devMode = false
   if (devMode){
     return (
       <Routes>
@@ -23,14 +22,53 @@ function App() {
         <Route path='/customize2' element={<Customize2 />} />
       </Routes>
     )
-  }
+  } */
   return (
     <Routes>
-      <Route path='/' element={(userData?.assistantImage && userData?.assistantName)? <Home /> : <Navigate to={"/customize"}/>} />
-      <Route path='/signup' element={!userData?<SignUp /> : <Navigate to={"/customize"}/>}/>
-      <Route path='/signin' element={!userData?<SignIn /> : <Navigate to={"/"}/>}/>
-      <Route path='/customize' element={userData?<Customize /> : <Navigate to={"/signup"}/>}/>
-      <Route path='/customize2' element={userData?<Customize2 /> : <Navigate to={"/signup"}/>}/>
+      <Route path='/' element={userData?
+           (userData.assistantImage && userData.assistantName?(
+             <Home />
+            ) : (
+            <Navigate to="/customize"/>
+             )) : (
+             <Navigate to= "/signin"/>
+             )} />
+
+      <Route path='/signup'
+       element={
+         !userData?(
+          <SignUp />
+          ) : userData.assistantName && userData.assistantImage? (
+             <Navigate to= "/"/>
+              ) : (
+                <Navigate to="/customize" />
+              ) }/>
+      
+      <Route path='/signin'
+       element={
+        !userData?(
+          <SignIn /> 
+            ): userData.assistantName && userData.assistantImage?(
+             <Navigate to= "/" />
+               ):(
+                 <Navigate to="/customize" />
+               )}/>
+
+      <Route path='/customize'
+         element={
+           userData? (
+             <Customize />
+               ) :(
+                  <Navigate to= "/signup" /> 
+                 )}/>
+
+      <Route path='/customize2'
+           element={
+             userData?(
+               <Customize2 />
+                 ) :(
+                   <Navigate to= "/signup"/> 
+                    )}/>
     </Routes>
   )
 }

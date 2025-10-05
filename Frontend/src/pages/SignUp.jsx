@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bg from "../assets/authBg.png";
 import { FaEye } from "react-icons/fa";
@@ -16,6 +16,12 @@ function SignUp() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+/*   useEffect(()=>{
+    if(userData){
+      navigate("/customize");
+    }
+  }, [userData, navigate]); */
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -38,9 +44,14 @@ function SignUp() {
 
       // ✅ Fetch current user after signup
       await handelCurrentUser();
+      if(userData?.assistantName && userData?.assistantImage){
+        navigate("/");
+      }else{
+        navigate("/customize");
+      }
 
       setLoading(false);
-      navigate("/customize");
+
     } catch (error) {
       console.log(error);
       setUserData(null);

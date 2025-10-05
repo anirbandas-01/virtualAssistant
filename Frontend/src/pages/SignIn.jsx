@@ -31,7 +31,7 @@ function SignIn() {
       return;
     }
     
-    try {
+/*     try {
 
        const result = await axios.post(
         `${serverUrl}/api/v1/auth/login`,
@@ -46,7 +46,33 @@ function SignIn() {
           setUserData(null)
           setLoading(false)
           setErr(error?.response?.data?.message || "Something went wrong. Try again.")
+    } */
+     
+          try {
+              const response = await axios.post(
+      `${serverUrl}/api/v1/auth/login`,
+      { email, password },
+      { withCredentials: true }
+    );
+
+    const user = response.data.data.user;
+    console.log("✅ Logged in user:", user);
+
+    setUserData(user);
+
+    // ✅ Redirect logic
+    if (user.assistantName && user.assistantImage) {
+      navigate("/"); // go home
+    } else {
+      navigate("/customize"); // go setup
     }
+
+          } catch (error) {
+              console.log(error);
+    setErr(error?.response?.data?.message || "Something went wrong");
+          }finally {
+    setLoading(false);
+  }
   };
 
   return (
