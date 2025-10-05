@@ -31,10 +31,10 @@ function Customize2() {
         const result = await axios.post(`${serverUrl}/api/v1/users/update`, formData, {withCredentials: true,
           headers: {"Content-Type": "multipart/form-data"},
         });
-
+        setLoading(false)
         console.log(result.data);
         setUserData(result.data);
-        
+        navigate("/")
       } catch (error) {
           console.log("Update error:", error.response?.data || error);
           } finally{

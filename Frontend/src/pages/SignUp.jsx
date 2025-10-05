@@ -17,11 +17,6 @@ function SignUp() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-/*   useEffect(()=>{
-    if(userData){
-      navigate("/customize");
-    }
-  }, [userData, navigate]); */
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -36,21 +31,17 @@ function SignUp() {
 
     try {
       // ✅ Use /api/v1/auth/signup
-      await axios.post(
+       const res = await axios.post(
         `${serverUrl}/api/v1/auth/signup`,
         { fullName: name, email, password },
         { withCredentials: true }
       );
 
       // ✅ Fetch current user after signup
-      await handelCurrentUser();
-      if(userData?.assistantName && userData?.assistantImage){
-        navigate("/");
-      }else{
-        navigate("/customize");
-      }
-
-      setLoading(false);
+   //   await handelCurrentUser();
+      setUserData(res.data.data?.user || res.data);
+     // setLoading(false);
+      navigate("/customize");
 
     } catch (error) {
       console.log(error);
@@ -96,6 +87,7 @@ function SignUp() {
                 disabled={loading}>{loading ? "Loading..." : "Sign Up"}</button> */}
 
         <button
+        type='submit'
          className={`relative min-w-[200px] h-[60px] mt-[13px] font-semibold rounded-full text-[19px] overflow-hidden transition-all duration-300
          bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg
          hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed`}

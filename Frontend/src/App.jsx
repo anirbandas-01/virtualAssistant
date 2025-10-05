@@ -11,18 +11,6 @@ import Customize2 from './pages/Customize2.jsx'
 function App() {
   const {userData, setUserData}= useContext(UserDataContext)
   
- /*  const devMode = false
-  if (devMode){
-    return (
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/signup' element={<SignUp />} />
-        <Route path='/signin' element={<SignIn />} />
-        <Route path='/customize' element={<Customize />} />
-        <Route path='/customize2' element={<Customize2 />} />
-      </Routes>
-    )
-  } */
   return (
     <Routes>
       <Route path='/' element={userData?
@@ -55,12 +43,8 @@ function App() {
                )}/>
 
       <Route path='/customize'
-         element={
-           userData? (
-             <Customize />
-               ) :(
-                  <Navigate to= "/signup" /> 
-                 )}/>
+       element={ userData? ( <Customize /> ) :( <Navigate to= "/signup" /> )}/>
+
 
       <Route path='/customize2'
            element={
