@@ -1,11 +1,11 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { UserDataContext } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 function Home() {
 
-  const {userData, serverUrl, setUserData} = useContext(UserDataContext)
+  const {userData, serverUrl, setUserData,getGeminiResponse} = useContext(UserDataContext)
   const navigate = useNavigate()
   const handelLogOut = async ()=>{
     try {
@@ -19,11 +19,47 @@ function Home() {
       
     }
   }
+
+
+  const speak=(text)=>{
+       const utterance = new SpeechSynthesisUtterance(text)
+       window.SpeechSynthesis.speak(utterance)
+  }
+
+
+
+  useEffect(()=>{
+
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      alert("Speech Recognition is not supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US'
+    recognition.continuous = true; // ✅ keeps listening after each result
+    recognition.interimResults = false; // only get final results
+ 
+    recognition.onstart = () => {
+    console.log("🎤 Voice recognition started");
+    };
+
+    recognition.onresult= async(e)=>{
+      const transcript = e.results[e.results.length - 1][0].transcript.trim()
+      console.log("heard :" + transcript);
+      
+      if(transcript.toLowerCase().includes(userData.assistantName.toLowerCase())){
+        const data = await getGeminiResponse(transcript)
+        console.log(data);
+        speak(data.response)
+      }
+    } 
+    recognition.start()
+      
+  },[])
   
-  
-
-
-
   return (
     <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#04044b] flex justify-center items-center flex-col gap-[15px]'>
 

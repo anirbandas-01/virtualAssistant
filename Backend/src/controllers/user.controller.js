@@ -1,5 +1,5 @@
 import { response } from "express";
-import geminiResponse from "../../gemini.js";
+import geminiResponse from "../gemini.js";
 import User  from "../models/user.models.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import moment from "moment";
@@ -56,13 +56,13 @@ export const askToAssistant = async (req, res)=> {
     try {
         const {prompt}= req.body
         const user = await User.findById(req.user._id);
-        const userName = user.fullName
-        const assistantName = user.assistantName
-        const result = await geminiResponse(prompt, assistantName, userName)   
+        const userName = user.fullName;
+        const assistantName = user.assistantName;
+        const result = await geminiResponse(prompt, assistantName, userName);   
         
-        const jsonMatch= result.match(/{[\s\S]*}/)
+        const jsonMatch= result.match(/{[\s\S]*}/);
         if(!jsonMatch){
-            return res.status(400).json({response:"sorry, i can't understand"})
+            return res.status(400).json({response:"sorry, i can't understand"});
         }
         
         const gemResult = JSON.parse(jsonMatch[0])
@@ -73,25 +73,25 @@ export const askToAssistant = async (req, res)=> {
                  return res.json({
                     type,
                     userInput: gemResult.userInput,
-                    response: `current date is ${moment().format("YYYY-MM-DD")}`
+                    response: `Today's date is ${moment().format("YYYY-MM-DD")}`
                  });
                  case 'get_time' :
                  return res.json({
                     type,
                     userInput: gemResult.userInput,
-                    response: `current date is ${moment().format("h:mm A")}`
+                    response: `The current time is ${moment().format("h:mm A")}`
                  });
                  case 'get_day' :
                  return res.json({
                     type,
                     userInput: gemResult.userInput,
-                    response: `current date is ${moment().format("dddd")}`
+                    response: `Today is ${moment().format("dddd")}`
                  });
                  case 'get_month' :
                  return res.json({
                     type,
                     userInput: gemResult.userInput,
-                    response: `current date is ${moment().format("MMMM")}`
+                    response: `We are in ${moment().format("MMMM")}`
                  });
                  case 'google_search':
                  case 'youtube_search':
@@ -112,7 +112,9 @@ export const askToAssistant = async (req, res)=> {
                     });
                                             
                     default:
-                        return res.status(400).json({response: "I did't understand that command."})
+                        return res
+                        .status(400)
+                        .json({response: "I did't understand that command."})
         }  
     } catch (error) {
         return res.status(500).json({response: "ask assistant error."})   

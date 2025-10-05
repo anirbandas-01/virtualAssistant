@@ -1,10 +1,17 @@
 import axios from "axios"
+import dotenv from "dotenv";
+dotenv.config();
 
-const geminiResponse = async (prompt, assistantName, userName)=> {
+const geminiResponse = async (userPrompt, assistantName, userName)=> {
     try {
         const apiUrl = process.env.GEMINI_API_URL
+
+        if (!apiUrl) {
+  console.error("❌ GEMINI_API_URL not found in environment variables.");
+  return JSON.stringify({ type: "error", response: "Missing API URL." });
+}
         
-        const prompt =  `You are "${assistantName}", a friendly, voice-enabled AI assistant created by ${userName}.  
+        const systemPrompt =  `You are "${assistantName}", a friendly, voice-enabled AI assistant created by ${userName}.  
 Your job is to understand the user's message and respond ONLY with a clean JSON object like this:
 
 {
@@ -52,7 +59,7 @@ Search and App Actions:
 5. Never use markdown, formatting, or quotes outside the JSON.
 
 -----------------------------------------
-User says: "${userInput}" `; 
+User says: "${userPrompt}" `; 
 
 
 const result = await axios.post(apiUrl,{
@@ -60,18 +67,18 @@ const result = await axios.post(apiUrl,{
       {
         "parts": [
           {
-            "text": prompt
-          }
-        ]
-      }
-    ]
-    })
+            "text": systemPrompt,
+          },
+        ],
+      },
+    ],
+    });
 
-    return result.data.candidates[0].content.parts[0].text
+    return result.data.candidates[0].content.parts[0].text;
     } catch (error) {
-        console.log(error);
-        
+        console.log("Gemini API Error:",error);
+        return JSON.stringify({ type: "error", response: "Gemini request failed." });
     }
-}
+};
 
 export default geminiResponse;  
