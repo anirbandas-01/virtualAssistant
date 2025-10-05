@@ -28,6 +28,16 @@ function UserContext({ children }) {
     }
   };
 
+
+  const getGeminiResponse = async (prompt)=>{
+     try {
+      const result=await axios.post(`${serverUrl}/api/v1/users/asktoassistant`,{prompt},{withCredentials: true})
+      return result.data
+    } catch (error) {
+       console.log(error);
+     }
+  }
+
   useEffect(() => {
     handelCurrentUser();
   }, []);
@@ -42,7 +52,8 @@ function UserContext({ children }) {
     frontendImage,
     setFrontendImage,
     selectedImage, 
-    setSelectedImage
+    setSelectedImage,
+    getGeminiResponse
   };
 
   return (

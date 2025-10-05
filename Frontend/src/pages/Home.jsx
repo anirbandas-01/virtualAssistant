@@ -19,6 +19,11 @@ function Home() {
       
     }
   }
+  
+  
+
+
+
   return (
     <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#04044b] flex justify-center items-center flex-col gap-[15px]'>
 
