@@ -55,23 +55,37 @@ export const updateAssistant = async (req, res) => {
 export const askToAssistant = async (req, res)=> {
     try {
         const { prompt } = req.body;
+        if(!prompt) return res.status(400).json({ response: "No prompt provided." });
+        
         const user = await User.findById(req.user._id);
+        if(!user) return res.status(400).json({ response: "user not found." });
+
         const userName = user.fullName;
         const assistantName = user.assistantName;
 
-        const result = await geminiResponse(prompt, userName, assistantName);   
+        //STEP1-call gemini api
+        const result = await geminiResponse(prompt, assistantName, userName);   
         
-       /*  const jsonMatch= result.trim().match(/{[\s\S]*}/);
+        //step2- extract only json if extra text exists
+       const jsonMatch= result.trim().match(/{[\s\S]*}/);
         if(!jsonMatch){
              console.log("❌ Could not parse Gemini JSON:", result);
-            return res.status(400).json({response:"sorry, i can't understand"});
+             return res.status(400).json({response:"sorry, i can't understand"});
         }
         
-        const gemResult = JSON.parse(jsonMatch[0]); */
+        //step3: parse safely
+        let gemResult;
+        try {
+            gemResult = JSON.parse(jsonMatch[0]);
+            
+        } catch (e) {
+            console.log("Gemini parse error:", e.message);
+            return res.status(400).json({ response: "Invalid response from Gemini." });
+        }
 
-        const gemResult = result;
-        const type= gemResult.type;
-
+        const { type, userInput, response: responseText }= gemResult;
+        
+        //step4:- Handel known command types
         switch(type){
             case "get_date":
                  return res.json({
@@ -111,8 +125,8 @@ export const askToAssistant = async (req, res)=> {
                  case 'calculator_open':
                     return res.json({
                         type,
-                        userInput: gemResult.userInput,
-                        response:gemResult.response,
+                        userInput,
+                        response:responseText || "Opening requested app...",
                     });
                                             
                     default:

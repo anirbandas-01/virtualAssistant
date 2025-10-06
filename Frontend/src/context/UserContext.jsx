@@ -33,21 +33,15 @@ function UserContext({ children }) {
     if (!prompt || prompt.trim() === "") {
     return { type: "error",  response: "No prompt provided" };
     }
-
+      if (!userData?._id) {
+    return { type: "error", response: "User data not loaded" };
+  }
      try {
       const result=await axios.post(
         `${serverUrl}/api/v1/users/asktoassistant`,
-        /* {prompt},
-        {withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-        });
-        
-          console.log("🤖 Assistant raw:", result.data); */
-          {
-            userId: userData._id,
-            message: message
-          }, { withCredentials: true});
-          
+         { prompt },
+        { withCredentials: true }
+        );
           return result.data;
     } catch (error) {
        console.log("Gemini API error:",error);

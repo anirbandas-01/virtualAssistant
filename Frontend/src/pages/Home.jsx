@@ -49,57 +49,6 @@ function Home() {
 
         speak(response);
 
-/*         if (type === 'google_search'){
-          const query = encodeURIComponent(userInput);
-          window.open(`https://www.google.com/search?q=${query}`,
-            '_blank');
-        }
-        if (type === 'youtube_search') {
-            const query = encodeURIComponent(userInput);
-            window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
-         }
-        if (type === 'youtube_play') {
-            const query = encodeURIComponent(userInput);
-            window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
-          }
-
-        if (type === 'settings_open') {
-          alert("Opening device settings is not supported directly from the browser.");
-         }
-
-        if (type === 'music_open') {
-          window.open('https://music.youtube.com/', '_blank');
-        }
-
-        if (type === 'camera_open') {
-         alert("Camera access can’t be opened directly. Please use your device camera app.");
-        }
-
-        if (type === 'notes_open') {
-         window.open('https://keep.google.com/', '_blank');
-       }
-
-        if (type === 'whatsapp_open') {
-        window.open('https://web.whatsapp.com/', '_blank');
-       }  
-
-        if (type === 'gmail_open') {
-         window.open('https://mail.google.com/', '_blank');
-       }
-
-        if (type === 'facebook_open') {
-        window.open('https://www.facebook.com/', '_blank');
-       }
-
-        if (type === 'instagram_open') {
-        window.open('https://www.instagram.com/', '_blank');
-       }
-
-       if (type === 'calculator_open') {
-        window.open('https://www.google.com/search?q=calculator', '_blank');
-       } */
-     
-
          switch (type) {
       case 'google_search':
         window.open(`https://www.google.com/search?q=${encodeURIComponent(userInput)}`, '_blank');
@@ -145,10 +94,11 @@ function Home() {
         const startRecognition = ()=> {
           if(!recognitionRef.current || isRecognizingRef.current || isSpeakingRef.current) return;
           try {
-             recognitionRef.current?.start();
+             recognitionRef.current.start();
+             console.log("Recognition started safely");
              //setListening(true);
           } catch (err) {
-             if(!err.name !== "InvalidStateError") console.error(err);
+             if(err.name !== "InvalidStateError") console.error(err);
        }
     };
 
@@ -199,8 +149,29 @@ function Home() {
           isRecognizingRef.current = false;
         }
         if(!transcript) return;
+        const lower = transcript.toLowerCase();
+        const openMap = {
+         "open google": "https://www.google.com",
+         "open youtube": "https://www.youtube.com",
+         "open whatsapp": "https://web.whatsapp.com",
+         "open gmail": "https://mail.google.com",
+         "open facebook": "https://www.facebook.com",
+         "open instagram": "https://www.instagram.com",
+         "open calculator": "https://www.google.com/search?q=calculator",
+         "open notes": "https://keep.google.com",
+          "open music": "https://music.youtube.com",
+        };
+        for(const [cmd, url] of Object.entries(openMap)) {
+          if(lower.includes(cmd)){
+            const appName = cmd.replace("open ", "");
+            speak(`Opening ${appName}`);
+            window.open(url, "_blank");
+            return;
+          }
+        }
+
         const data = await getGeminiResponse(transcript);
-        if(data) handelCommand(data)
+        if(data) handelCommand(data);
       }
     };
     
