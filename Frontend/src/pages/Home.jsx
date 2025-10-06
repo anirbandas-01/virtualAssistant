@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from 'react'
 import { UserDataContext } from '../context/UserContext'
-import { useNavigate } from 'react-router-dom'
+import { data, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 function Home() {
@@ -22,11 +22,65 @@ function Home() {
 
 
   const speak=(text)=>{
-       const utterance = new SpeechSynthesisUtterance(text)
-       window.SpeechSynthesis.speak(utterance)
-  }
+       if(!text) return;
+       const utterance = new SpeechSynthesisUtterance(text);
+       window.speechSynthesis.speak(utterance)
+  };
 
+  const handelCommand=(data)=> {
+        const {type, userInput, response}=data
+        speak(response);
 
+        if (type === 'google_search'){
+          const query = encodeURIComponent(userInput);
+          window.open(`https://www.google.com/search?q=${query}`,
+            '_blank');
+        }
+        if (type === 'youtube_search') {
+            const query = encodeURIComponent(userInput);
+            window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
+         }
+        if (type === 'youtube_play') {
+            const query = encodeURIComponent(userInput);
+            window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
+          }
+
+        if (type === 'settings_open') {
+          alert("Opening device settings is not supported directly from the browser.");
+         }
+
+        if (type === 'music_open') {
+          window.open('https://music.youtube.com/', '_blank');
+        }
+
+        if (type === 'camera_open') {
+         alert("Camera access can’t be opened directly. Please use your device camera app.");
+        }
+
+        if (type === 'notes_open') {
+         window.open('https://keep.google.com/', '_blank');
+       }
+
+        if (type === 'whatsapp_open') {
+        window.open('https://web.whatsapp.com/', '_blank');
+       }  
+
+        if (type === 'gmail_open') {
+         window.open('https://mail.google.com/', '_blank');
+       }
+
+        if (type === 'facebook_open') {
+        window.open('https://www.facebook.com/', '_blank');
+       }
+
+        if (type === 'instagram_open') {
+        window.open('https://www.instagram.com/', '_blank');
+       }
+
+       if (type === 'calculator_open') {
+        window.open('https://www.google.com/search?q=calculator', '_blank');
+       }
+     }
 
   useEffect(()=>{
 
@@ -52,8 +106,7 @@ function Home() {
       
       if(transcript.toLowerCase().includes(userData.assistantName.toLowerCase())){
         const data = await getGeminiResponse(transcript)
-        console.log(data);
-        speak(data.response)
+        handelCommand(data)
       }
     } 
     recognition.start()

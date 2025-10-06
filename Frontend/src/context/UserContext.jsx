@@ -30,14 +30,13 @@ function UserContext({ children }) {
 
 
   const getGeminiResponse = async (prompt)=>{
-
     if (!prompt || prompt.trim() === "") {
-    return { message: "No prompt provided" };
+    return { type: "error",  response: "No prompt provided" };
     }
 
      try {
-      const result=await axios.post(`
-        ${serverUrl}/api/v1/users/asktoassistant`,
+      const result=await axios.post(
+        `${serverUrl}/api/v1/users/asktoassistant`,
         {prompt},
         {withCredentials: true,
         headers: { "Content-Type": "application/json" },
@@ -45,10 +44,10 @@ function UserContext({ children }) {
         
           console.log("🤖 Assistant raw:", result.data);
           
-          return result.data.response || "I did't understand that.";
+          return result.data;
     } catch (error) {
        console.log("Gemini API error:",error);
-       return { message: "Error fetching assistant response" };
+       return { type:"error", response: "Error fetching assistant response" };
      }
   }
 

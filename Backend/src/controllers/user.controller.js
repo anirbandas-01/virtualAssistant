@@ -60,12 +60,13 @@ export const askToAssistant = async (req, res)=> {
         const assistantName = user.assistantName;
         const result = await geminiResponse(prompt, assistantName, userName);   
         
-        const jsonMatch= result.match(/{[\s\S]*}/);
+        const jsonMatch= result.trim().match(/{[\s\S]*}/);
         if(!jsonMatch){
+             console.log("❌ Could not parse Gemini JSON:", result);
             return res.status(400).json({response:"sorry, i can't understand"});
         }
         
-        const gemResult = JSON.parse(jsonMatch[0])
+        const gemResult = JSON.parse(jsonMatch[0]);
         const type= gemResult.type
 
         switch(type){

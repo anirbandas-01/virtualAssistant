@@ -4,80 +4,63 @@ dotenv.config();
 
 const geminiResponse = async (userPrompt, assistantName, userName)=> {
     try {
-        const apiUrl = process.env.GEMINI_API_URL
+        const apiUrl = process.env.GEMINI_API_URL;
 
         if (!apiUrl) {
   console.error("❌ GEMINI_API_URL not found in environment variables.");
   return JSON.stringify({ type: "error", response: "Missing API URL." });
 }
         
-        const systemPrompt =  `You are "${assistantName}", a friendly, voice-enabled AI assistant created by ${userName}.  
-Your job is to understand the user's message and respond ONLY with a clean JSON object like this:
+const systemPrompt = `You are ${assistantName}, an intelligent and friendly AI assistant created by ${userName}.
+Your job is to analyze the user's message and output ONLY a single valid JSON object — no text, no markdown, no explanations.
 
+Output format:
 {
   "type": "<intent>",
   "userInput": "<cleaned user message>",
-  "response": "<short, natural spoken reply>"
+  "response": "<short natural spoken reply>"
 }
 
------------------------------------------
-🔹 INTENT TYPES
------------------------------------------
-General:
-- "general" → for normal factual or conversational questions.
-- "weather_show" → if user asks about weather.
-- "get_time" → if user asks for current time.
-- "get_date" → if user asks for today’s date.
-- "get_day" → if user asks what day it is.
-- "get_month" → if user asks about current month.
-- "tell_joke" → if user asks for a joke.
-- "tell_fact" → if user asks for a random fact.
-- "greet" → if user says hi, hello, good morning, etc.
-- "goodbye" → if user says bye, goodnight, etc.
+Valid "type" values include:
+get_date, get_time, get_day, get_month, google_search, youtube_search, youtube_play,
+settings_open, music_open, camera_open, notes_open, whatsapp_open, gmail_open,
+facebook_open, instagram_open, calculator_open.
 
-Search and App Actions:
-- "google_search" → if user wants to search on Google.
-- "youtube_search" → if user wants to search something on YouTube.
-- "youtube_play" → if user wants to directly play a video/song.
-- "calculator_open" → if user wants to open calculator.
-- "instagram_open" → if user wants to open Instagram.
-- "facebook_open" → if user wants to open Facebook.
-- "gmail_open" → if user wants to open Gmail.
-- "whatsapp_open" → if user wants to open WhatsApp.
-- "camera_open" → if user wants to open camera.
-- "notes_open" → if user wants to open notes app.
-- "music_open" → if user wants to open music player.
-- "settings_open" → if user wants to open device settings.
+Example:
+User says: "What’s the date today?"
+Output:
+{
+  "type": "get_date",
+  "userInput": "What’s the date today?",
+  "response": "Today's date is October 6, 2025."
+}
 
------------------------------------------
-🔹 RULES
------------------------------------------
-1. If user asks who created you → respond with "${userName}" in the "response" field.
-2. Always keep "response" short, natural, and friendly — ready to be spoken aloud.
-3. Remove your own name from the "userInput" text if the user mentions it.
-4. Output must be ONLY valid JSON — no extra text or explanation.
-5. Never use markdown, formatting, or quotes outside the JSON.
-
------------------------------------------
-User says: "${userPrompt}" `; 
-
+Now respond ONLY with valid JSON.
+`;
 
 const result = await axios.post(apiUrl,{
-        "contents": [
+        contents: [
       {
-        "parts": [
-          {
-            "text": systemPrompt,
-          },
-        ],
+        role: "user",
+        parts: [{text: `${systemPrompt}\nUser: ${userPrompt}`}],
       },
     ],
-    });
+    },
+     {
+      headers: {
+       "Content-Type": "application/json",
+    },
+     }
+     );
 
-    return result.data.candidates[0].content.parts[0].text;
+     const text = result.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+     console.log("Gemini raw output:", text);
+
+     
+    return text; 
     } catch (error) {
-        console.log("Gemini API Error:",error);
-        return JSON.stringify({ type: "error", response: "Gemini request failed." });
+        console.error("Gemini API Error:",error.response?.data || error.message);
+        return JSON.stringify({ type: "error", response: "Gemini API error." });
     }
 };
 
