@@ -37,12 +37,16 @@ function UserContext({ children }) {
      try {
       const result=await axios.post(
         `${serverUrl}/api/v1/users/asktoassistant`,
-        {prompt},
+        /* {prompt},
         {withCredentials: true,
         headers: { "Content-Type": "application/json" },
         });
         
-          console.log("🤖 Assistant raw:", result.data);
+          console.log("🤖 Assistant raw:", result.data); */
+          {
+            userId: userData._id,
+            message: message
+          }, { withCredentials: true});
           
           return result.data;
     } catch (error) {
