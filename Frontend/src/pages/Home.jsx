@@ -2,14 +2,18 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { UserDataContext } from '../context/UserContext';
 import { data, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import aiImg from '../assets/ai.gif';
+import userImg from '../assets/user.gif';
 
 function Home() {
 
   const {userData, serverUrl, setUserData, getGeminiResponse} = useContext(UserDataContext);
   const navigate = useNavigate();
   const [listening, setListening] =  useState(false);
-
   
+  const [userText, setUserText]= useState("")
+  const [aiText, setAiText]= useState("")
+
   const recognitionRef = useRef(null);
   const isRecognizingRef = useRef(false);
   const isSpeakingRef = useRef(false);
@@ -32,10 +36,15 @@ function Home() {
   //speak function
   const speak = (text) => {
        if (!text) return;
+
+       setAiText(text);
+       setUserText("");
+
        const utterance = new SpeechSynthesisUtterance(text);
        isSpeakingRef.current=true;
        utterance.onend = () => {
         isSpeakingRef.current=false;
+        setAiText("");
         startRecognition();
        };
        synth.speak(utterance);
@@ -149,6 +158,10 @@ function Home() {
           isRecognizingRef.current = false;
         }
         if(!transcript) return;
+
+        setUserText(transcript);
+        setAiText("");
+
         const lower = transcript.toLowerCase();
         const openMap = {
          "open google": "https://www.google.com",
@@ -204,7 +217,28 @@ function Home() {
       <div className='w-[300px] h-[400px] flex justify-center items-center overflow-hidden rounded-4xl shadow-lg'>
          <img src={userData?.assistantImage} alt='' className='h-full object-cover'/>
       </div>
-        <h1 className='text-green-400 text-[18px] font-serif'>I'm {userData?.assistantName}</h1>
+        <h1 className='text-green-400 text-[18px] font-serif'>I'm {userData?.assistantName}
+        </h1>
+      {/*  
+      {!aiText && <img src={userImg} alt="" className='w-[200px]'/>}
+      {aiText && <img src={aiImg} alt="" className='w-[200px]'/>}
+  */} 
+
+     <div className="flex flex-col items-center gap-2 mt-5">
+   {!aiText && (
+    <div>
+      <p className="text-green-400 text-center">{userText}</p>
+      <img src={userImg} alt="User speaking" className="w-[200px]" />
+    </div>
+  )}
+  {aiText && (
+    <div>
+      <p className="text-blue-400 text-center">{aiText}</p>
+      <img src={aiImg} alt="AI speaking" className="w-[200px]" />
+    </div>
+  )}
+</div>
+
     </div>
   )
 }
