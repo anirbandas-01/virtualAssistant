@@ -1,5 +1,5 @@
 import axios from "axios"
-import dotenv from "dotenv";
+import dotenv, { config } from "dotenv";
 dotenv.config();
 
 const geminiResponse = async (userPrompt, assistantName, userName)=> {
@@ -39,10 +39,13 @@ Now respond ONLY with valid JSON.
 `;
 
 const result = await axios.post(apiUrl,{
+        config: {
+          systemInstruction: systemPrompt
+        },
         contents: [
       {
         role: "user",
-        parts: [{text: `${systemPrompt}\nUser: ${userPrompt}`}],
+        parts: [{text: userPrompt }],
       },
     ],
     },
@@ -50,8 +53,7 @@ const result = await axios.post(apiUrl,{
       headers: {
        "Content-Type": "application/json",
     },
-     }
-     );
+     });
 
      const text = result.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
      console.log("Gemini raw output:", text);
