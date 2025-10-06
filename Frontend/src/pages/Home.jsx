@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { UserDataContext } from '../context/UserContext'
 import { data, useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -7,6 +7,11 @@ function Home() {
 
   const {userData, serverUrl, setUserData,getGeminiResponse} = useContext(UserDataContext)
   const navigate = useNavigate()
+  const [listening, setListening] =  useState(false)
+  const isSpeakingRef = useRef(false)
+  const recognitionRef = useRef(null)
+  const synth= window.speechSynthesis
+
   const handelLogOut = async ()=>{
     try {
       const result= await axios.get(`${serverUrl}/api/v1/auth/logout`, 
@@ -20,11 +25,26 @@ function Home() {
     }
   }
 
+  const startRecognition = ()=> {
+    try {
+      recognitionRef.current?.start();
+      setListening(true);
+    } catch (error) {
+       if(!error.message.includes("start")){
+        console.error("Recognition error:", error);
+       }
+    }
+  };
+
 
   const speak=(text)=>{
-       if(!text) return;
        const utterance = new SpeechSynthesisUtterance(text);
-       window.speechSynthesis.speak(utterance)
+       isSpeakingRef.current=true
+       utterance.onend=()=>{
+        isSpeakingRef.current=false
+        startRecognition()
+       }
+       synth.speak(utterance)
   };
 
   const handelCommand=(data)=> {
@@ -89,15 +109,56 @@ function Home() {
       return;
     }
 
-
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US'
     recognition.continuous = true; // ✅ keeps listening after each result
     recognition.interimResults = false; // only get final results
- 
-    recognition.onstart = () => {
-    console.log("🎤 Voice recognition started");
+    
+    recognitionRef.current=recognition
+    
+    const isRecognizingRef= {current:false}
+     
+    const  safeRecognition =()=> {
+      if(!isSpeakingRef.current && !isRecognizingRef.current){
+        try {
+         recognition.start()
+         console.log("Recognition requested to start");
+        } catch (err) {
+          if(err.name !== "InvalidStateError"){
+            console.error("start error:", err);
+          }
+        }
+      }
+    }
+
+    recognition.onstart= ()=>{
+      console.log("Recognition started");
+      isRecognizingRef.current= true;
+      setListening(true);
+    };
+
+    recognition.onend = ()=> {
+      console.log("Recording ended");
+      isRecognizingRef.current = false;
+      setListening(false);
+    
+      if(!isSpeakingRef.current){
+        setTimeout(()=> {
+          safeRecognition()
+        }, 1000);
+      }
+    };
+
+    recognition.onerror = (event)=>{
+        console.warn("Recognition error:", event.error);
+        isRecognizingRef.current = false;
+        setListening(false);
+        if(event.error !== "aborted" && !isSpeakingRef.current){
+          setTimeout(()=>{
+            safeRecognition();
+          },1000);
+        }
     };
 
     recognition.onresult= async(e)=>{
@@ -105,12 +166,27 @@ function Home() {
       console.log("heard :" + transcript);
       
       if(transcript.toLowerCase().includes(userData.assistantName.toLowerCase())){
+        
+        recognition.stop()
+        isRecognizingRef.current=false
+        setListening(false)
         const data = await getGeminiResponse(transcript)
         handelCommand(data)
       }
-    } 
-    recognition.start()
-      
+    }  
+
+    const fallback= setInterval(()=>{
+       if(!isSpeakingRef.current && !isRecognizingRef.current){
+        safeRecognition()
+       }
+    },10000)
+     safeRecognition()
+      return ()=>{
+        recognition.stop()
+        setListening(false)
+        isRecognizingRef.current=false
+        clearInterval(fallback)
+      }
   },[])
   
   return (
