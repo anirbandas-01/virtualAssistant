@@ -4,6 +4,8 @@ import { data, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import aiImg from '../assets/ai.gif';
 import userImg from '../assets/user.gif';
+import { FaHamburger } from "react-icons/fa";
+import { ImCross } from "react-icons/im";
 
 function Home() {
 
@@ -199,18 +201,21 @@ function Home() {
   
   return (
     <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#04044b] flex justify-center items-center flex-col gap-[15px]'>
-
+      <FaHamburger className='lg:hidden text-white absolute top-[20px] right-[20px] w-[25px] h-[25px]'/>
+        <div className='absolute top-0 w-full h-full bg-[#0000003f]'>
+          <ImCross className=' text-white absolute top-[20px] right-[20px] w-[25px] h-[25px]'/>
+        </div>
      <button
          className={`absolute min-w-[250px] h-[60px] mt-[13px] font-semibold top-[20px] right-[20px] rounded-3xl text-[19px] overflow-hidden transition-all duration-300
          bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg
-         hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed`}
+         hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed hidden lg:block`}
          onClick={()=>navigate("/customize")}
          >Customize Your Assistant</button>
         
          <button
          className={`absolute min-w-[100px] h-[60px] mt-[13px] top-[100px] right-[20px] font-semibold rounded-3xl text-[19px] overflow-hidden transition-all duration-300
          bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg
-         hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed`}
+         hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed hidden lg:block`}
          onClick={handelLogOut}
          >Log Out</button>
 
@@ -218,11 +223,7 @@ function Home() {
          <img src={userData?.assistantImage} alt='' className='h-full object-cover'/>
       </div>
         <h1 className='text-green-400 text-[18px] font-serif'>I'm {userData?.assistantName}
-        </h1>
-      {/*  
-      {!aiText && <img src={userImg} alt="" className='w-[200px]'/>}
-      {aiText && <img src={aiImg} alt="" className='w-[200px]'/>}
-  */} 
+        </h1> 
 
      <div className="flex flex-col items-center gap-2 mt-5">
    {!aiText && (
