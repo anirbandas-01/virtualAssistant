@@ -60,10 +60,6 @@ export const askToAssistant = async (req, res)=> {
         const user = await User.findById(req.user._id);
         if(!user) return res.status(400).json({ response: "user not found." });
 
-        user.history.push(`🧑${prompt}`);
-        user.history.push(`🤖${responseText || "No response"}`);
-        await user.save()
-
         const userName = user.fullName;
         const assistantName = user.assistantName;
 
@@ -88,6 +84,10 @@ export const askToAssistant = async (req, res)=> {
         }
 
         const { type, userInput, response: responseText }= gemResult;
+
+        user.history.push(`🧑${prompt}`);
+        user.history.push(`🤖${responseText || "No response"}`);
+        await user.save()
         
         //step4:- Handel known command types
         switch(type){

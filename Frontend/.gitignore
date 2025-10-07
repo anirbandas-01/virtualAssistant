@@ -308,3 +308,109 @@ export default Home;
 
 
 
+  {/* 💬 current Conversation (shown only inside menu on small screens) */}
+    <div className="w-full max-w-[500px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
+      <h2 className="text-center text-white font-semibold mb-3">Conversation History</h2>
+      {history.length === 0 ? (
+        <p className="text-gray-400 text-center">No conversations yet...</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {history.map((item, index) => (
+            <li
+              key={index}
+              className={`text-sm px-3 py-2 rounded-xl ${
+                item.role === "user"
+                  ? "bg-green-600/30 text-green-300 self-end text-right"
+                  : "bg-blue-600/30 text-blue-300 self-start text-left"
+              }`}
+            >
+              <strong>{item.role === "user" ? "🧍You: " : "🤖 "}</strong>
+              {item.text}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+    </div>
+      )}
+
+      {/* 💬 Current conversation (desktop) */}
+      <div className="hidden lg:block w-full max-w-[600px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
+        <h2 className="text-center text-white font-semibold mb-3">
+          Current Conversation
+        </h2>
+        {history.length === 0 ? (
+          <p className="text-gray-400 text-center">No conversations yet...</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {history.map((item, index) => (
+              <li
+                key={index}
+                className={`text-sm px-3 py-2 rounded-xl ${
+                  item.role === "user"
+                    ? "bg-green-600/30 text-green-300 text-right"
+                    : "bg-blue-600/30 text-blue-300 text-left"
+                }`}
+              >
+                <strong>
+                  {item.role === "user" ? "🧍You: " : "🤖 "}
+                </strong>
+                {item.text}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    
+
+     {/* 💬 current Conversation (shown only inside menu on small screens) */}
+    <div className="w-full max-w-[500px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
+      <h2 className="text-center text-white font-semibold mb-3">Conversation History</h2>
+      {history.length === 0 ? (
+        <p className="text-gray-400 text-center">No conversations yet...</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {history.map((item, index) => (
+            <li
+              key={index}
+              className={`text-sm px-3 py-2 rounded-xl ${
+                item.role === "user"
+                  ? "bg-green-600/30 text-green-300 self-end text-right"
+                  : "bg-blue-600/30 text-blue-300 self-start text-left"
+              }`}
+            >
+              <strong>{item.role === "user" ? "🧍You: " : "🤖 "}</strong>
+              {item.text}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+     {/* 💬 Current conversation (desktop) */}
+      <div className="hidden lg:block w-full max-w-[600px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
+        <h2 className="text-center text-white font-semibold mb-3">
+          Current Conversation
+        </h2>
+        {history.length === 0 ? (
+          <p className="text-gray-400 text-center">No conversations yet...</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {history.map((item, index) => (
+              <li
+                key={index}
+                className={`text-sm px-3 py-2 rounded-xl ${
+                  item.role === "user"
+                    ? "bg-green-600/30 text-green-300 text-right"
+                    : "bg-blue-600/30 text-blue-300 text-left"
+                }`}
+              >
+                <strong>
+                  {item.role === "user" ? "🧍You: " : "🤖 "}
+                </strong>
+                {item.text}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>

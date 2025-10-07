@@ -12,7 +12,7 @@ const userRouter = express.Router()
 userRouter.route("/current").get(verifyJWT,getCurrentUser);
 userRouter.route("/update").post(verifyJWT,upload.single("assistantImage"),updateAssistant);
 userRouter.route("/asktoassistant").post(verifyJWT,askToAssistant);
-userRouter.route("/getuserhistory").get(verifyJWT,getUserHistory);
+userRouter.route("/history").get(verifyJWT,getUserHistory);
 
 
 export default userRouter

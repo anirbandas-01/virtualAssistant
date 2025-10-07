@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 export const UserDataContext = createContext();
@@ -10,6 +10,7 @@ function UserContext({ children }) {
   const [frontendImage, setFrontendImage] = useState(null)
   const [backendImage, setBackendImage] = useState(null)
   const [selectedImage, setSelectedImage] = useState(null)
+  const [userHistory, setUserHistory] = useState([]);
   
   // ✅ Fetch current user only if accessToken exists in cookies
   const handelCurrentUser = async () => {
@@ -49,9 +50,31 @@ function UserContext({ children }) {
      }
   }
 
+
+   // fetch history useEffect
+         const fetchUserHistory = async ()=> {
+           try {
+             const res = await axios.get(`${serverUrl}/api/v1/users/history`,{
+               withCredentials:true,
+             });
+             if(res.data && res.data.history){
+               setUserHistory(res.data.history);
+             }
+           } catch (error) {
+             console.error("Failed to fetch user history:", error);
+           }
+         };
+  
+
   useEffect(() => {
     handelCurrentUser();
-  }, []);
+  },[]);
+
+  useEffect(() => {
+   if(userData?._id){
+      fetchUserHistory();
+    }
+  }, [userData?._id]);  
 
   const value = {
     serverUrl,
@@ -64,7 +87,10 @@ function UserContext({ children }) {
     setFrontendImage,
     selectedImage, 
     setSelectedImage,
-    getGeminiResponse
+    getGeminiResponse,
+    userHistory,
+    setUserHistory,
+    fetchUserHistory
   };
 
   return (

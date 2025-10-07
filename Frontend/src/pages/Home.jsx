@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { UserDataContext } from '../context/UserContext';
-import { data, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import aiImg from '../assets/ai.gif';
 import userImg from '../assets/user.gif';
@@ -9,7 +9,7 @@ import { ImCross } from "react-icons/im";
 
 function Home() {
 
-  const {userData, serverUrl, setUserData, getGeminiResponse} = useContext(UserDataContext);
+  const {userData, serverUrl, setUserData, getGeminiResponse, userHistory, fetchUserHistory} = useContext(UserDataContext);
   const navigate = useNavigate();
   const [listening, setListening] =  useState(false);
   
@@ -18,7 +18,6 @@ function Home() {
   const [menuOpen, setMenuOpen]= useState(false);
   const [history ,setHistory] = useState([]);
   const [showFullHistory, setShowFullHistory] = useState(false);
-  const [allHistory, setAllHistory] = useState([]);
 
   const recognitionRef = useRef(null);
   const isRecognizingRef = useRef(false);
@@ -47,7 +46,6 @@ function Home() {
 
        setHistory((prev)=> [
         ...prev,
-        {role: "user", text: userText},
         {role: "assistant", text },
        ]);
 
@@ -55,11 +53,13 @@ function Home() {
 
        const utterance = new SpeechSynthesisUtterance(text);
        isSpeakingRef.current=true;
+
        utterance.onend = () => {
         isSpeakingRef.current=false;
         setAiText("");
         startRecognition();
        };
+       synth.cancel();
        synth.speak(utterance);
   };
 
@@ -124,22 +124,8 @@ function Home() {
        }
     };
 
-  // fetch history useEffect
-    useEffect(()=>{
-      const fetchHistory = async ()=> {
-        try {
-          const res = await axios.get(`${serverUrl}/api/v1/users/history`,{
-            withCredentials:true,
-          });
-          if(res.data && res.data.history){
-            setHistory(res.data.history.map((text)=> ({role: "user", text})));
-          }
-        } catch (error) {
-          console.error("Failed to fetch user history:", error);
-        }
-      };
-      if(userData) fetchHistory();
-    }, [ userData, serverUrl]); 
+    
+   
 
   useEffect(()=>{
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -188,9 +174,10 @@ function Home() {
           isRecognizingRef.current = false;
         }
         if(!transcript) return;
-
+        
         setUserText(transcript);
         setAiText("");
+        setHistory((prev) => [...prev, {role: "user", text: transcript }]);
 
         const lower = transcript.toLowerCase();
         const openMap = {
@@ -220,11 +207,12 @@ function Home() {
     
     //start recognition once on mount
      startRecognition();
-
+    
       return ()=>{
         try {recognition.stop(); } catch(e) {}
         isRecognizingRef.current=false;
       };
+      if(userData) fetchUserHistory();
   },[userData, getGeminiResponse]);
   
     return (
@@ -254,6 +242,16 @@ function Home() {
             Customize Your Assistant
           </button>
 
+           <button
+            className="min-w-[200px] h-[60px] mt-[20px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+            onClick={() =>{ 
+              fetchUserHistory();
+              setShowFullHistory(true);
+            }}
+          >
+            View All History
+          </button>
+
           <button
             className="min-w-[150px] h-[60px] mt-[20px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
             onClick={() => {
@@ -262,63 +260,80 @@ function Home() {
             }}
           >
             Log Out
-          </button>
-         
-             {/* 💬 Conversation History (shown only inside menu on small screens) */}
-    <div className="w-full max-w-[500px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
-      <h2 className="text-center text-white font-semibold mb-3">Conversation History</h2>
-      {history.length === 0 ? (
-        <p className="text-gray-400 text-center">No conversations yet...</p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {history.map((item, index) => (
-            <li
-              key={index}
-              className={`text-sm px-3 py-2 rounded-xl ${
-                item.role === "user"
-                  ? "bg-green-600/30 text-green-300 self-end text-right"
-                  : "bg-blue-600/30 text-blue-300 self-start text-left"
-              }`}
-            >
-              <strong>{item.role === "user" ? "🧍You: " : "🤖 "}</strong>
-              {item.text}
-            </li>
-          ))}
-        </ul>
-      )}
+          </button>    
     </div>
+      )}
+       {/* 💬 Full History Modal */}
+      {showFullHistory && (
+        <div className="absolute top-0 left-0 w-full h-full bg-[#000000b3] backdrop-blur-lg flex flex-col items-center justify-center z-50 p-6">
+          <ImCross
+            className="text-white absolute top-[20px] right-[20px] w-[25px] h-[25px] cursor-pointer hover:rotate-90 transition-transform"
+            onClick={() => setShowFullHistory(false)}
+          />
+          <h2 className="text-white text-xl font-semibold mb-4">
+            All Previous Conversations
+          </h2>
 
+          <div className="w-full max-w-[600px] h-[400px] overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 shadow-inner">
+            {userHistory.length === 0 ? (
+              <p className="text-gray-400 text-center">No saved history found.</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {userHistory.map((item, index) => (
+                  <li
+                    key={index}
+                    className={`text-sm px-3 py-2 rounded-xl ${
+                      item.includes("🧑")
+                        ? "bg-green-600/30 text-green-300 text-right"
+                        : "bg-blue-600/30 text-blue-300 text-left"
+                    }`}
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       )}
 
-      {/* 🖥️ Desktop buttons (always visible on large screens) */}
-      <div className="hidden lg:flex flex-col absolute top-[20px] right-[20px] gap-4">
-        <button
-          className="min-w-[250px] h-[60px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
-          onClick={() => navigate("/customize")}
-        >
-          Customize Your Assistant
-        </button>
-
-        <button
-          className="min-w-[150px] h-[60px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
-          onClick={handelLogOut}
-        >
-          Log Out
-        </button>
-      </div>
-
-      {/* 🧠 Assistant section */}
+      {/* 🧠 Assistant */}
       <div className="w-[300px] h-[400px] flex justify-center items-center overflow-hidden rounded-4xl shadow-lg">
-        <img src={userData?.assistantImage} alt="" className="h-full object-cover" />
+        <img src={userData?.assistantImage || aiImg} alt="Assistant" className="h-full object-cover" />
       </div>
 
       <h1 className="text-green-400 text-[18px] font-serif">
         I'm {userData?.assistantName}
       </h1>
+          {/* Buttons for large screens */}
+<div className="hidden lg:flex flex-col gap-4 absolute top-6 right-6 items-end">
+  <button
+    className="min-w-[250px] h-[60px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+    onClick={() => navigate("/customize")}
+  >
+    Customize Your Assistant
+  </button>
 
+  <button
+    className="min-w-[200px] h-[60px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+    onClick={() => {
+      fetchUserHistory();
+      setShowFullHistory(true);
+    }}
+  >
+    View All History
+  </button>
+
+  <button
+    className="min-w-[150px] h-[60px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+    onClick={handelLogOut}
+  >
+    Log Out
+  </button>
+</div> 
       {/* 🎙️ Speech area */}
-      <div className="flex flex-col items-center gap-2 mt-5">
+      <div className="flex flex-col items-center gap-2 mt-5 transition-all duration-100 ">
+        <div className='text-center relative w-[200px] h-[200px]'>
         {!aiText && (
           <div className="text-center">
             <p className="text-green-400">{userText}</p>
@@ -332,9 +347,12 @@ function Home() {
           </div>
         )}
       </div>
-        {/* 💬 Conversation History (Desktop only) */}
-<div className="hidden lg:block w-full max-w-[600px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
-  <h2 className="text-center text-white font-semibold mb-3">Conversation History</h2>
+       </div>
+       {/* 💬 Current conversation (all screen sizes now) */}
+<div className="block w-full max-w-[600px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
+  <h2 className="text-center text-white font-semibold mb-3">
+    Current Conversation
+  </h2>
   {history.length === 0 ? (
     <p className="text-gray-400 text-center">No conversations yet...</p>
   ) : (
@@ -344,8 +362,8 @@ function Home() {
           key={index}
           className={`text-sm px-3 py-2 rounded-xl ${
             item.role === "user"
-              ? "bg-green-600/30 text-green-300 self-end text-right"
-              : "bg-blue-600/30 text-blue-300 self-start text-left"
+              ? "bg-green-600/30 text-green-300 text-right"
+              : "bg-blue-600/30 text-blue-300 text-left"
           }`}
         >
           <strong>{item.role === "user" ? "🧍You: " : "🤖 "}</strong>
@@ -355,6 +373,7 @@ function Home() {
     </ul>
   )}
 </div>
+
     </div>
   );
 }
