@@ -15,6 +15,10 @@ function Home() {
   
   const [userText, setUserText]= useState("")
   const [aiText, setAiText]= useState("")
+  const [menuOpen, setMenuOpen]= useState(false);
+  const [history ,setHistory] = useState([]);
+  const [showFullHistory, setShowFullHistory] = useState(false);
+  const [allHistory, setAllHistory] = useState([]);
 
   const recognitionRef = useRef(null);
   const isRecognizingRef = useRef(false);
@@ -40,6 +44,13 @@ function Home() {
        if (!text) return;
 
        setAiText(text);
+
+       setHistory((prev)=> [
+        ...prev,
+        {role: "user", text: userText},
+        {role: "assistant", text },
+       ]);
+
        setUserText("");
 
        const utterance = new SpeechSynthesisUtterance(text);
@@ -107,11 +118,28 @@ function Home() {
           try {
              recognitionRef.current.start();
              console.log("Recognition started safely");
-             //setListening(true);
+             
           } catch (err) {
              if(err.name !== "InvalidStateError") console.error(err);
        }
     };
+
+  // fetch history useEffect
+    useEffect(()=>{
+      const fetchHistory = async ()=> {
+        try {
+          const res = await axios.get(`${serverUrl}/api/v1/users/history`,{
+            withCredentials:true,
+          });
+          if(res.data && res.data.history){
+            setHistory(res.data.history.map((text)=> ({role: "user", text})));
+          }
+        } catch (error) {
+          console.error("Failed to fetch user history:", error);
+        }
+      };
+      if(userData) fetchHistory();
+    }, [ userData, serverUrl]); 
 
   useEffect(()=>{
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -199,49 +227,136 @@ function Home() {
       };
   },[userData, getGeminiResponse]);
   
-  return (
-    <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#04044b] flex justify-center items-center flex-col gap-[15px]'>
-      <FaHamburger className='lg:hidden text-white absolute top-[20px] right-[20px] w-[25px] h-[25px]'/>
-        <div className='absolute top-0 w-full h-full bg-[#0000003f]'>
-          <ImCross className=' text-white absolute top-[20px] right-[20px] w-[25px] h-[25px]'/>
+    return (
+    <div className="w-full h-[100vh] bg-gradient-to-t from-black to-[#04044b] flex justify-center items-center flex-col gap-[15px] relative">
+
+      {/* 🍔 Hamburger icon for small screens */}
+      <FaHamburger
+        className="lg:hidden text-white absolute top-[20px] right-[20px] w-[25px] h-[25px] cursor-pointer hover:scale-110 transition-all"
+        onClick={() => setMenuOpen(true)}
+      />
+
+      {/* 🧩 Overlay menu (visible only when opened on small screens) */}
+      {menuOpen && (
+        <div className="absolute top-0 left-0 w-full h-full bg-[#0000008a] backdrop-blur-md flex flex-col items-center justify-center z-50 transition-all duration-500">
+          <ImCross
+            className="text-white absolute top-[20px] right-[20px] w-[25px] h-[25px] cursor-pointer hover:rotate-90 transition-transform"
+            onClick={() => setMenuOpen(false)}
+          />
+
+          <button
+            className="min-w-[250px] h-[60px] mt-[13px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+            onClick={() => {
+              setMenuOpen(false);
+              navigate("/customize");
+            }}
+          >
+            Customize Your Assistant
+          </button>
+
+          <button
+            className="min-w-[150px] h-[60px] mt-[20px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+            onClick={() => {
+              setMenuOpen(false);
+              handelLogOut();
+            }}
+          >
+            Log Out
+          </button>
+         
+             {/* 💬 Conversation History (shown only inside menu on small screens) */}
+    <div className="w-full max-w-[500px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
+      <h2 className="text-center text-white font-semibold mb-3">Conversation History</h2>
+      {history.length === 0 ? (
+        <p className="text-gray-400 text-center">No conversations yet...</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {history.map((item, index) => (
+            <li
+              key={index}
+              className={`text-sm px-3 py-2 rounded-xl ${
+                item.role === "user"
+                  ? "bg-green-600/30 text-green-300 self-end text-right"
+                  : "bg-blue-600/30 text-blue-300 self-start text-left"
+              }`}
+            >
+              <strong>{item.role === "user" ? "🧍You: " : "🤖 "}</strong>
+              {item.text}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
         </div>
-     <button
-         className={`absolute min-w-[250px] h-[60px] mt-[13px] font-semibold top-[20px] right-[20px] rounded-3xl text-[19px] overflow-hidden transition-all duration-300
-         bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg
-         hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed hidden lg:block`}
-         onClick={()=>navigate("/customize")}
-         >Customize Your Assistant</button>
-        
-         <button
-         className={`absolute min-w-[100px] h-[60px] mt-[13px] top-[100px] right-[20px] font-semibold rounded-3xl text-[19px] overflow-hidden transition-all duration-300
-         bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg
-         hover:scale-105 hover:shadow-2xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed hidden lg:block`}
-         onClick={handelLogOut}
-         >Log Out</button>
+      )}
 
-      <div className='w-[300px] h-[400px] flex justify-center items-center overflow-hidden rounded-4xl shadow-lg'>
-         <img src={userData?.assistantImage} alt='' className='h-full object-cover'/>
+      {/* 🖥️ Desktop buttons (always visible on large screens) */}
+      <div className="hidden lg:flex flex-col absolute top-[20px] right-[20px] gap-4">
+        <button
+          className="min-w-[250px] h-[60px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+          onClick={() => navigate("/customize")}
+        >
+          Customize Your Assistant
+        </button>
+
+        <button
+          className="min-w-[150px] h-[60px] font-semibold rounded-3xl text-[19px] bg-gradient-to-r from-green-400 via-teal-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+          onClick={handelLogOut}
+        >
+          Log Out
+        </button>
       </div>
-        <h1 className='text-green-400 text-[18px] font-serif'>I'm {userData?.assistantName}
-        </h1> 
 
-     <div className="flex flex-col items-center gap-2 mt-5">
-   {!aiText && (
-    <div>
-      <p className="text-green-400 text-center">{userText}</p>
-      <img src={userImg} alt="User speaking" className="w-[200px]" />
-    </div>
-  )}
-  {aiText && (
-    <div>
-      <p className="text-blue-400 text-center">{aiText}</p>
-      <img src={aiImg} alt="AI speaking" className="w-[200px]" />
-    </div>
+      {/* 🧠 Assistant section */}
+      <div className="w-[300px] h-[400px] flex justify-center items-center overflow-hidden rounded-4xl shadow-lg">
+        <img src={userData?.assistantImage} alt="" className="h-full object-cover" />
+      </div>
+
+      <h1 className="text-green-400 text-[18px] font-serif">
+        I'm {userData?.assistantName}
+      </h1>
+
+      {/* 🎙️ Speech area */}
+      <div className="flex flex-col items-center gap-2 mt-5">
+        {!aiText && (
+          <div className="text-center">
+            <p className="text-green-400">{userText}</p>
+            <img src={userImg} alt="User speaking" className="w-[200px]" />
+          </div>
+        )}
+        {aiText && (
+          <div className="text-center">
+            <p className="text-blue-400">{aiText}</p>
+            <img src={aiImg} alt="AI speaking" className="w-[200px]" />
+          </div>
+        )}
+      </div>
+        {/* 💬 Conversation History (Desktop only) */}
+<div className="hidden lg:block w-full max-w-[600px] h-[180px] mt-8 overflow-y-auto bg-[#ffffff0d] rounded-2xl p-4 backdrop-blur-md shadow-inner">
+  <h2 className="text-center text-white font-semibold mb-3">Conversation History</h2>
+  {history.length === 0 ? (
+    <p className="text-gray-400 text-center">No conversations yet...</p>
+  ) : (
+    <ul className="flex flex-col gap-2">
+      {history.map((item, index) => (
+        <li
+          key={index}
+          className={`text-sm px-3 py-2 rounded-xl ${
+            item.role === "user"
+              ? "bg-green-600/30 text-green-300 self-end text-right"
+              : "bg-blue-600/30 text-blue-300 self-start text-left"
+          }`}
+        >
+          <strong>{item.role === "user" ? "🧍You: " : "🤖 "}</strong>
+          {item.text}
+        </li>
+      ))}
+    </ul>
   )}
 </div>
-
     </div>
-  )
+  );
 }
 
 export default Home;

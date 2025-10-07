@@ -3,13 +3,16 @@ import { askToAssistant, getCurrentUser } from "../controllers/user.controller.j
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { updateAssistant } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { getUserHistory } from "../controllers/user.controller.js";
 
 
 const userRouter = express.Router()
  
 
-userRouter.route("/current").get(verifyJWT,getCurrentUser)
-userRouter.route("/update").post(verifyJWT,upload.single("assistantImage"),updateAssistant)
-userRouter.route("/asktoassistant").post(verifyJWT,askToAssistant) 
+userRouter.route("/current").get(verifyJWT,getCurrentUser);
+userRouter.route("/update").post(verifyJWT,upload.single("assistantImage"),updateAssistant);
+userRouter.route("/asktoassistant").post(verifyJWT,askToAssistant);
+userRouter.route("/getuserhistory").get(verifyJWT,getUserHistory);
+
 
 export default userRouter

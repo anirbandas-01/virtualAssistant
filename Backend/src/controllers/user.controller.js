@@ -60,8 +60,9 @@ export const askToAssistant = async (req, res)=> {
         const user = await User.findById(req.user._id);
         if(!user) return res.status(400).json({ response: "user not found." });
 
-        user.history.push(prompt)
-        user.save()
+        user.history.push(`🧑${prompt}`);
+        user.history.push(`🤖${responseText || "No response"}`);
+        await user.save()
 
         const userName = user.fullName;
         const assistantName = user.assistantName;
@@ -140,5 +141,17 @@ export const askToAssistant = async (req, res)=> {
     } catch (error) {
         console.log("askToAssistant error:", error);
         return res.status(500).json({ response: "ask assistant error." })   
+    }
+};
+
+export const getUserHistory = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if(!user) return res.status(400).json({ response: "User not found." });
+
+        res.status(200).json({ history: user.history });
+    } catch (error) {
+        console.log("getUserHistory error:", error);
+        res.status(500).json({ response: "Error fetching history." });
     }
 };
