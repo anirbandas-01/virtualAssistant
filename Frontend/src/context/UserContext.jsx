@@ -38,9 +38,12 @@ function UserContext({ children }) {
     return { type: "error", response: "User data not loaded" };
   }
      try {
+      const context = userHistory.slice(-4).join("\n");
+      const fullPrompt = `${context}\nUser: ${prompt}`;
+
       const result=await axios.post(
         `${serverUrl}/api/v1/users/asktoassistant`,
-         { prompt },
+         { prompt},
         { withCredentials: true }
         );
           return result.data;

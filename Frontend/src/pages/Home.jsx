@@ -23,94 +23,112 @@ function Home() {
   const isRecognizingRef = useRef(false);
   const isSpeakingRef = useRef(false);
   const synth= window.speechSynthesis;
+  const hasGreetedRef = useRef(false);
 
-  //logout function
-  const handelLogOut = async ()=>{
-    try {
-      const result= await axios.get(`${serverUrl}/api/v1/auth/logout`, 
-        {withCredentials:true})
-        setUserData(null)
-        navigate("/signin")
-    } catch (error) {
-      setUserData(null)
-      console.log(error);
-      
-    }
-  }
+        //logout function
+        const handelLogOut = async ()=>{
+          try {
+            const result= await axios.get(`${serverUrl}/api/v1/auth/logout`, 
+              {withCredentials:true})
+              setUserData(null)
+              navigate("/signin")
+          } catch (error) {
+            setUserData(null)
+            console.log(error);
+            
+          }
+        }
 
-  //speak function
-  const speak = (text) => {
-       if (!text) return;
+        //Add the greeting here
+        useEffect(() => {
+          if (userData?.assistantName && !isSpeakingRef.current && !hasGreetedRef.current) {
+            const greetMessages = [
+              `Hello ${userData.fullName}, I’m ${userData.assistantName}. How are you today?`,
+              `Welcome back, ${userData.fullName}. It's great to see you again!`,
+              `Hey ${userData.fullName}, ready to explore something new today?`,
+              `Hi there! ${userData.assistantName} here, always at your service.`,
+            ];
+            const randomGreeting = greetMessages[Math.floor(Math.random() * greetMessages.length)];
+            speak(randomGreeting);
+            hasGreetedRef.current = true;
+          }
+        }, [userData]);
 
-       setAiText(text);
+        //speak function
+        const speak = (text) => {
+            if (!text) return;
 
-       setHistory((prev)=> [
-        ...prev,
-        {role: "assistant", text },
-       ]);
+            setAiText(text);
+            setHistory((prev)=> [
+              ...prev,
+              {role: "assistant", text },
+              ]);
+            setUserText("");
 
-       setUserText("");
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.pitch= 1.1;
+            utterance.rate = 0.95;
+            utterance.volume = 1;
+            utterance.lang = "en-US"
 
-       const utterance = new SpeechSynthesisUtterance(text);
-       isSpeakingRef.current=true;
+            isSpeakingRef.current=true;
+            utterance.onend = () => {
+              isSpeakingRef.current=false;
+              setAiText("");
+              startRecognition();
+            };
+            synth.cancel();
+            synth.speak(utterance);
+        };
 
-       utterance.onend = () => {
-        isSpeakingRef.current=false;
-        setAiText("");
-        startRecognition();
-       };
-       synth.cancel();
-       synth.speak(utterance);
-  };
+      //command handler
+      const handelCommand = (data) => {
+            const {type, userInput, response}=data;
 
-  //command handler
-  const handelCommand = (data) => {
-        const {type, userInput, response}=data;
+            if (!response) return;
 
-        if (!response) return;
+            speak(response);
 
-        speak(response);
-
-         switch (type) {
-      case 'google_search':
-        window.open(`https://www.google.com/search?q=${encodeURIComponent(userInput)}`, '_blank');
-        break;
-      case 'youtube_search':
-      case 'youtube_play':
-        window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(userInput)}`, '_blank');
-        break;
-      case 'settings_open':
-        alert("Opening device settings is not supported directly from the browser.");
-        break;
-      case 'music_open':
-        window.open('https://music.youtube.com/', '_blank');
-        break;
-      case 'camera_open':
-        alert("Camera access can’t be opened directly. Please use your device camera app.");
-        break;
-      case 'notes_open':
-        window.open('https://keep.google.com/', '_blank');
-        break;
-      case 'whatsapp_open':
-        window.open('https://web.whatsapp.com/', '_blank');
-        break;
-      case 'gmail_open':
-        window.open('https://mail.google.com/', '_blank');
-        break;
-      case 'facebook_open':
-        window.open('https://www.facebook.com/', '_blank');
-        break;
-      case 'instagram_open':
-        window.open('https://www.instagram.com/', '_blank');
-        break;
-      case 'calculator_open':
-        window.open('https://www.google.com/search?q=calculator', '_blank');
-        break;
-      default:
-        // fallback speak already handled above
-        break;
-    }
-     };
+            switch (type) {
+          case 'google_search':
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(userInput)}`, '_blank');
+            break;
+          case 'youtube_search':
+          case 'youtube_play':
+            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(userInput)}`, '_blank');
+            break;
+          case 'settings_open':
+            alert("Opening device settings is not supported directly from the browser.");
+            break;
+          case 'music_open':
+            window.open('https://music.youtube.com/', '_blank');
+            break;
+          case 'camera_open':
+            alert("Camera access can’t be opened directly. Please use your device camera app.");
+            break;
+          case 'notes_open':
+            window.open('https://keep.google.com/', '_blank');
+            break;
+          case 'whatsapp_open':
+            window.open('https://web.whatsapp.com/', '_blank');
+            break;
+          case 'gmail_open':
+            window.open('https://mail.google.com/', '_blank');
+            break;
+          case 'facebook_open':
+            window.open('https://www.facebook.com/', '_blank');
+            break;
+          case 'instagram_open':
+            window.open('https://www.instagram.com/', '_blank');
+            break;
+          case 'calculator_open':
+            window.open('https://www.google.com/search?q=calculator', '_blank');
+            break;
+          default:
+            // fallback speak already handled above
+            break;
+        }
+        };
   
        //start recognition
         const startRecognition = ()=> {
@@ -122,10 +140,7 @@ function Home() {
           } catch (err) {
              if(err.name !== "InvalidStateError") console.error(err);
        }
-    };
-
-    
-   
+         };
 
   useEffect(()=>{
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -164,7 +179,7 @@ function Home() {
         if(event.error !== "aborted" && !isSpeakingRef.current) startRecognition();
     };
 
-    recognition.onresult = async (event) => {
+   recognition.onresult = async (event) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim();
       console.log("heard :", transcript);
       
@@ -199,12 +214,89 @@ function Home() {
             return;
           }
         }
-
         const data = await getGeminiResponse(transcript);
         if(data) handelCommand(data);
       }
-    };
+    }; 
     
+
+    /*    recognition.onresult = async (event) => {
+  const transcript = event.results[event.results.length - 1][0].transcript.trim();
+  const lower = transcript.toLowerCase();
+  console.log("heard:", transcript);
+
+  const matchWake = wakePhrases.find(phrase => lower.startsWith(phrase));
+  if(matchWake){
+    console.log("Wake phrase detected!");
+    isAwake = true;
+    clearTimeout(wakeTimer)
+  }
+
+  if (!userData?.assistantName) return;
+  const name = userData.assistantName.toLowerCase();
+
+  // ✅ Wake phrases
+  const wakePhrases = [
+    `hey ${name}`,
+    `hello ${name}`,
+    `wake up ${name}`,
+    `${name}`
+  ];
+
+  // ✅ Check if this is a wake phrase at the start
+  const isWakePhrase = wakePhrases.some(phrase => 
+    lower.startsWith(phrase) || lower === phrase
+  );
+
+  // 💤 Static flag to store wake state
+  if (!recognitionRef.current.wakeActive)
+    recognitionRef.current.wakeActive = false;
+
+  // 👂 Step 1: Detect wake phrase
+  if (isWakePhrase && !recognitionRef.current.wakeActive) {
+    recognitionRef.current.wakeActive = true;
+    console.log("Wake phrase detected!");
+    speak(`Yes ${userData.fullName}, I'm listening.`);
+    return;
+  }
+
+  // 🚀 Step 2: After wake-up, process next command
+  if (recognitionRef.current.wakeActive) {
+    recognitionRef.current.wakeActive = false; // reset for next wake
+    if (!transcript) return;
+
+    setUserText(transcript);
+    setAiText("");
+    setHistory((prev) => [...prev, { role: "user", text: transcript }]);
+
+    // Common quick commands
+    const openMap = {
+      "open google": "https://www.google.com",
+      "open youtube": "https://www.youtube.com",
+      "open whatsapp": "https://web.whatsapp.com",
+      "open gmail": "https://mail.google.com",
+      "open facebook": "https://www.facebook.com",
+      "open instagram": "https://www.instagram.com",
+      "open calculator": "https://www.google.com/search?q=calculator",
+      "open notes": "https://keep.google.com",
+      "open music": "https://music.youtube.com",
+    };
+
+    for (const [cmd, url] of Object.entries(openMap)) {
+      if (lower.includes(cmd)) {
+        const appName = cmd.replace("open ", "");
+        speak(`Opening ${appName}`);
+        window.open(url, "_blank");
+        return;
+      }
+    }
+
+    // 🧠 If not a quick command, ask Gemini
+    const data = await getGeminiResponse(transcript);
+    if (data) handelCommand(data);
+  }
+};
+ */
     //start recognition once on mount
      startRecognition();
     

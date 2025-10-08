@@ -115,6 +115,27 @@ export const askToAssistant = async (req, res)=> {
                      userInput: gemResult.userInput,
                      response: `We are in ${moment().format("MMMM")}`
                  });
+                 case "greeting":
+                        return res.json({
+                            type,
+                            userInput,
+                            response: `Hey ${userName}! I’m ${assistantName}. Hope you’re having a great day!`
+                        });
+
+                 case "how_are_you":
+                        return res.json({
+                            type,
+                            userInput,
+                            response: `I’m doing great, ${userName}. Thanks for asking! How about you?`
+                        });
+
+                 case "thank_you":
+                        return res.json({
+                            type,
+                            userInput,
+                            response: `You’re always welcome, ${userName}!`
+                        });
+
                  case 'google_search':
                  case 'youtube_search':
                  case 'youtube_play':
