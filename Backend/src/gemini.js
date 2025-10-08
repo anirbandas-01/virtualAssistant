@@ -29,7 +29,7 @@ const geminiResponse = async (userPrompt, assistantName, userName)=> {
         Valid "type" values include:
         get_date, get_time, get_day, get_month, google_search, youtube_search, youtube_play,
         settings_open, music_open, camera_open, notes_open, whatsapp_open, gmail_open,
-        facebook_open, instagram_open, calculator_open, greeting, how_are_you, thank_you.
+        facebook_open, instagram_open, calculator_open, greeting, how_are_you, thank_you, weather.
 
        Example:
        User says: "What’s the date today?"

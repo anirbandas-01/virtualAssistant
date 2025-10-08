@@ -67,6 +67,18 @@ function UserContext({ children }) {
              console.error("Failed to fetch user history:", error);
            }
          };
+
+       const getWeatherFromBackend = async (city) => {
+        try {
+          const res = await axios.get(`${serverUrl}/api/v1/users/weather?city=${encodeURIComponent(city)}`,{
+            withCredentials: true
+          });
+          return res.data.response;
+        } catch (err) {
+          console.error("Frontend weather error:", err);
+          return "Could not fetch weather.";
+        }
+       };
   
 
   useEffect(() => {
@@ -93,7 +105,8 @@ function UserContext({ children }) {
     getGeminiResponse,
     userHistory,
     setUserHistory,
-    fetchUserHistory
+    fetchUserHistory,
+    getWeatherFromBackend
   };
 
   return (

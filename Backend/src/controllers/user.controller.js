@@ -3,6 +3,7 @@ import geminiResponse from "../gemini.js";
 import User  from "../models/user.models.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import moment from "moment";
+import axios from "axios";
 
 export const getCurrentUser = async (req, res) => {
     try {
@@ -135,7 +136,25 @@ export const askToAssistant = async (req, res)=> {
                             userInput,
                             response: `You’re always welcome, ${userName}!`
                         });
-
+                 case "weather":
+                       try {
+                         const cityMatch = userInput.match(/weather (?:of )?(.+)/i); //assume Gemini returns city name in userInput
+                         const city = cityMatch ? cityMatch[1].trim() : userInput; //fallback
+                         const apiKey = process.env.WEATHER_API_KEY;
+                         const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+                         const weatherRes = await axios.get(url);
+                         const data = weatherRes.data;
+                         
+                         const weatherInfo = `Weather in ${data.name}: ${data.weather[0].description}, Temperature: ${data.main.temp}°C, Humidity: ${data.main.humidity}%`;
+                         return res.json({
+                            type: "weather",
+                            response: weatherInfo,
+                         });
+                        
+                        } catch (err) {
+                          console.log("weather fetch error:", err.message);
+                          return res.status(500).json({ response: "Could not fetch weather." });
+                       }
                  case 'google_search':
                  case 'youtube_search':
                  case 'youtube_play':
@@ -174,5 +193,25 @@ export const getUserHistory = async (req, res) => {
     } catch (error) {
         console.log("getUserHistory error:", error);
         res.status(500).json({ response: "Error fetching history." });
+    }
+};
+
+export const getWeather = async (req, res )=> {
+    try {
+        const { city } = req.query; //accept city as query parameter
+        if(!city) return res.status(400).json({ response: "please provide a city."})
+
+        const apiKey = process.env.WEATHER_API_KEY;
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`
+        
+        const weatherRes = await axios.get(url);
+        const data = weatherRes.data;
+
+        const weatherInfo = `Weather in ${data.name}: ${data.weather[0].description}, Temp: ${data.main.temp}°C, Humidity: ${data.main.humidity}%`;
+
+        res.status(200).json({ type: "weather", city: data.name, response:weatherInfo });
+    } catch (error) {
+        console.error("weather API error:", error.response?.data || error.message);
+        res.status(500).json({ response: "could not fetch weather. Make sure the city name is correct." });
     }
 };
