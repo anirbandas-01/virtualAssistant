@@ -138,14 +138,24 @@ export const askToAssistant = async (req, res)=> {
                         });
                  case "weather":
                        try {
-                         const cityMatch = userInput.match(/weather (?:of )?(.+)/i); //assume Gemini returns city name in userInput
-                         const city = cityMatch ? cityMatch[1].trim() : userInput; //fallback
+                         const cityMatch = userInput.match(/weather\s(?:in|for|of)?\s*(.+)/i); //assume Gemini returns city name in userInput
+                         const city = cityMatch ? cityMatch[1].trim().replace(/\?$/, "") : null; //: userInput; //fallback
+                         
+                         if(!city){
+                            return res.json({
+                                type: "weather",
+                                response: "sorry, I couldn't detect the city, please try again."
+                            }); 
+                         }
+                         
                          const apiKey = process.env.WEATHER_API_KEY;
                          const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+                         
                          const weatherRes = await axios.get(url);
                          const data = weatherRes.data;
                          
                          const weatherInfo = `Weather in ${data.name}: ${data.weather[0].description}, Temperature: ${data.main.temp}°C, Humidity: ${data.main.humidity}%`;
+                         
                          return res.json({
                             type: "weather",
                             response: weatherInfo,
