@@ -9,7 +9,7 @@ import { ImCross } from "react-icons/im";
 
 function Home() {
 
-  const {userData, serverUrl, setUserData, getGeminiResponse, userHistory, fetchUserHistory} = useContext(UserDataContext);
+  const {userData, serverUrl, setUserData, getGeminiResponse, userHistory, fetchUserHistory, voiceGender} = useContext(UserDataContext);
   const navigate = useNavigate();
   const [listening, setListening] =  useState(false);
   
@@ -39,7 +39,17 @@ function Home() {
           }
         }
 
-        //Add the greeting here
+        const getVoiceByGender = (gender) => {
+  const voices = window.speechSynthesis.getVoices();
+  if (gender === "male") {
+    return voices.find(v => v.name.toLowerCase().includes("male")) || voices.find(v => v.name.toLowerCase().includes("david"));
+  } else {
+    return voices.find(v => v.name.toLowerCase().includes("female")) || voices.find(v => v.name.toLowerCase().includes("zira"));
+  }
+};
+
+
+/*         //Add the greeting here
         useEffect(() => {
           if (userData?.assistantName && !isSpeakingRef.current && !hasGreetedRef.current) {
             const greetMessages = [
@@ -52,7 +62,40 @@ function Home() {
             speak(randomGreeting);
             hasGreetedRef.current = true;
           }
-        }, [userData]);
+        }, [userData]); */
+
+        useEffect(() => {
+  if (userData?.assistantName && !isSpeakingRef.current && !hasGreetedRef.current) {
+    const greetMessages = [
+      `Hello ${userData.fullName}, I’m ${userData.assistantName}. How are you today?`,
+      `Welcome back, ${userData.fullName}. It's great to see you again!`,
+      `Hey ${userData.fullName}, ready to explore something new today?`,
+      `Hi there! ${userData.assistantName} here, always at your service.`,
+    ];
+    const randomGreeting = greetMessages[Math.floor(Math.random() * greetMessages.length)];
+
+    // ✅ Wait for voices to be loaded before greeting
+    const speakGreeting = () => {
+      const utterance = new SpeechSynthesisUtterance(randomGreeting);
+      utterance.voice = getVoiceByGender(voiceGender); // use selected gender voice
+      utterance.lang = "en-US";
+      utterance.pitch = 1.1;
+      utterance.rate = 0.95;
+      utterance.volume = 1;
+      synth.cancel();
+      synth.speak(utterance);
+      hasGreetedRef.current = true;
+    };
+
+    // Some browsers load voices asynchronously
+    if (speechSynthesis.getVoices().length === 0) {
+      speechSynthesis.onvoiceschanged = speakGreeting;
+    } else {
+      speakGreeting();
+    }
+  }
+}, [userData, voiceGender]);
+
 
         //speak function
         const speak = (text) => {
@@ -66,6 +109,7 @@ function Home() {
             setUserText("");
 
             const utterance = new SpeechSynthesisUtterance(text);
+             utterance.voice = getVoiceByGender(voiceGender);
             utterance.pitch= 1.1;
             utterance.rate = 0.95;
             utterance.volume = 1;
@@ -220,83 +264,6 @@ function Home() {
     }; 
     
 
-    /*    recognition.onresult = async (event) => {
-  const transcript = event.results[event.results.length - 1][0].transcript.trim();
-  const lower = transcript.toLowerCase();
-  console.log("heard:", transcript);
-
-  const matchWake = wakePhrases.find(phrase => lower.startsWith(phrase));
-  if(matchWake){
-    console.log("Wake phrase detected!");
-    isAwake = true;
-    clearTimeout(wakeTimer)
-  }
-
-  if (!userData?.assistantName) return;
-  const name = userData.assistantName.toLowerCase();
-
-  // ✅ Wake phrases
-  const wakePhrases = [
-    `hey ${name}`,
-    `hello ${name}`,
-    `wake up ${name}`,
-    `${name}`
-  ];
-
-  // ✅ Check if this is a wake phrase at the start
-  const isWakePhrase = wakePhrases.some(phrase => 
-    lower.startsWith(phrase) || lower === phrase
-  );
-
-  // 💤 Static flag to store wake state
-  if (!recognitionRef.current.wakeActive)
-    recognitionRef.current.wakeActive = false;
-
-  // 👂 Step 1: Detect wake phrase
-  if (isWakePhrase && !recognitionRef.current.wakeActive) {
-    recognitionRef.current.wakeActive = true;
-    console.log("Wake phrase detected!");
-    speak(`Yes ${userData.fullName}, I'm listening.`);
-    return;
-  }
-
-  // 🚀 Step 2: After wake-up, process next command
-  if (recognitionRef.current.wakeActive) {
-    recognitionRef.current.wakeActive = false; // reset for next wake
-    if (!transcript) return;
-
-    setUserText(transcript);
-    setAiText("");
-    setHistory((prev) => [...prev, { role: "user", text: transcript }]);
-
-    // Common quick commands
-    const openMap = {
-      "open google": "https://www.google.com",
-      "open youtube": "https://www.youtube.com",
-      "open whatsapp": "https://web.whatsapp.com",
-      "open gmail": "https://mail.google.com",
-      "open facebook": "https://www.facebook.com",
-      "open instagram": "https://www.instagram.com",
-      "open calculator": "https://www.google.com/search?q=calculator",
-      "open notes": "https://keep.google.com",
-      "open music": "https://music.youtube.com",
-    };
-
-    for (const [cmd, url] of Object.entries(openMap)) {
-      if (lower.includes(cmd)) {
-        const appName = cmd.replace("open ", "");
-        speak(`Opening ${appName}`);
-        window.open(url, "_blank");
-        return;
-      }
-    }
-
-    // 🧠 If not a quick command, ask Gemini
-    const data = await getGeminiResponse(transcript);
-    if (data) handelCommand(data);
-  }
-};
- */
     //start recognition once on mount
      startRecognition();
     

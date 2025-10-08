@@ -11,6 +11,7 @@ function UserContext({ children }) {
   const [backendImage, setBackendImage] = useState(null)
   const [selectedImage, setSelectedImage] = useState(null)
   const [userHistory, setUserHistory] = useState([]);
+  const [voiceGender, setVoiceGender] = useState(localStorage.getItem("voiceGender")) || "female";
   
   // ✅ Fetch current user only if accessToken exists in cookies
   const handelCurrentUser = async () => {
@@ -106,7 +107,9 @@ function UserContext({ children }) {
     userHistory,
     setUserHistory,
     fetchUserHistory,
-    getWeatherFromBackend
+    getWeatherFromBackend,
+    voiceGender,
+    setVoiceGender,
   };
 
   return (
